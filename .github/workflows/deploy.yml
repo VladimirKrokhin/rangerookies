@@ -13,8 +13,26 @@ jobs:
       - name: Получение кода
         uses: actions/checkout@v4
 
+      - name: Подготовка директории и синхронизация файлов
+        run: |
+          sudo mkdir -p /var/www/apps/rangerookies
+          sudo chown -R $USER:$USER /var/www/apps/rangerookies
+          rsync -av --delete ./ /var/www/apps/rangerookies/
+
+      - name: Создание .env файлов из секретов
+        run: |
+          cd /var/www/apps/rangerookies
+          
+          # Создаем .env файлы из GitHub Secrets
+          echo "${{ secrets.AUTH_ENV }}" > auth-service/.env
+          echo "${{ secrets.TRAINING_ENV }}" > training-service/.env
+          echo "${{ secrets.REFERENCE_ENV }}" > reference-service/.env
+          echo "${{ secrets.NOTES_ENV }}" > notes-service/.env
+
       - name: Сборка Docker-образов
         run: docker-compose build
+        working-directory: /var/www/apps/rangerookies
 
       - name: Запуск сервисов
-        run: docker-compose up -d 
+        run: docker-compose up -d
+        working-directory: /var/www/apps/rangerookies 

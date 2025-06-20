@@ -49,7 +49,7 @@ node_modules/
 !babel.config.js
 
 # Каталог с результатами сборки (самое важное!)
-/dist
+/dist\
 /build
 /out
 /node_modules
