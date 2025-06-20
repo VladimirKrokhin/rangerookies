@@ -15,11 +15,11 @@ import { AppDataSource } from './config/database';
 import SETTINGS from './config/settings';
 import { useSwagger } from './config/swagger';
 import { UserController } from './controllers/user.controller';
-import { HealthController } from './controllers/health.controller';
 import { AuthController } from './controllers/auth.controller';
 import { metricsMiddleware, metricsEndpoint } from './config/prometheus';
 import { RabbitMQService } from './services/rabbitmq.service';
 import { authorizationChecker } from './middlewares/auth-checker';
+import healthRouter from './routes/health.routes';
 
 // Используем контейнер TypeDI для инъекции зависимостей
 useContainer(Container);
@@ -61,9 +61,12 @@ export class App {
     // Эндпоинт для метрик Prometheus
     this.app.get('/metrics', metricsEndpoint);
 
+    // Эндпоинт для проверки здоровья (до routing-controllers)
+    this.app.use('/api/health', healthRouter);
+
     // Настройка контроллеров
     const options: RoutingControllersOptions = {
-      controllers: [UserController, HealthController, AuthController],
+      controllers: [UserController, AuthController],
       routePrefix: '/api',
       classTransformer: true,
       validation: true,

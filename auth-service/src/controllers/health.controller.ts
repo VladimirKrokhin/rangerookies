@@ -1,29 +1,28 @@
-import { Get, JsonController } from 'routing-controllers';
-import { OpenAPI } from 'routing-controllers-openapi';
 import { Service } from 'typedi';
 import { AppDataSource } from '../config/database';
+import { Response } from 'express';
 
-@JsonController('/auth')
 @Service()
 export class HealthController {
-  @Get('/health')
-  @OpenAPI({
-    summary: 'Health check',
-    description: 'Проверка работоспособности сервиса',
-    security: [], // Отключаем требование авторизации для этого эндпоинта
-  })
-  public async check() {
+  async check(_: any, res: Response) {
     try {
       const isConnected = AppDataSource.isInitialized;
-      return {
+      return res.json({
         status: 'ok',
-        database: isConnected ? 'connected' : 'disconnected',
-      };
+        timestamp: new Date().toISOString(),
+        services: {
+          database: isConnected ? 'connected' : 'disconnected',
+        },
+      });
     } catch (error) {
-      return {
+      return res.json({
         status: 'error',
-        message: 'Service is not healthy',
-      };
+        timestamp: new Date().toISOString(),
+        services: {
+          database: 'disconnected',
+        },
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
   }
 }

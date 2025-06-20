@@ -3,6 +3,11 @@ import Container from 'typedi';
 import { AuthService } from '../services/auth.service';
 
 export async function authorizationChecker(action: Action, _roles: string[]) {
+  // Пропускаем авторизацию для health endpoint
+  if (action.request.url.startsWith('/api/health')) {
+    return true;
+  }
+
   const authHeader = action.request.headers['authorization'];
   if (!authHeader) return false;
   const token = authHeader.split(' ')[1];

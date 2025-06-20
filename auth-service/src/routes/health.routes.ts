@@ -1,9 +1,10 @@
 import { Router } from 'express';
+import { Container } from 'typedi';
 import { HealthController } from '../controllers/health.controller';
 
 const router = Router();
-const healthController = new HealthController();
+const healthController = Container.get(HealthController);
 
-router.get('/', healthController.check);
+router.get('/', (req, res) => healthController.check(req, res));
 
-export const healthRouter = router;
+export default router;
