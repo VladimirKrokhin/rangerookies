@@ -6,7 +6,6 @@ on:
 jobs:
   deploy:
     name: Развертывание
-    # Важно: эта задача должна выполняться на вашем собственном сервере-раннере
     runs-on: self-hosted
 
     steps:
@@ -28,6 +27,12 @@ jobs:
           echo "${{ secrets.TRAINING_ENV }}" > training-service/.env
           echo "${{ secrets.REFERENCE_ENV }}" > reference-service/.env
           echo "${{ secrets.NOTES_ENV }}" > notes-service/.env
+
+      - name: Очистка Docker
+        run: |
+          cd /var/www/apps/rangerookies
+          docker-compose down -v --remove-orphans || true
+          docker system prune -a -f --volumes || true
 
       - name: Сборка Docker-образов
         run: docker-compose build
