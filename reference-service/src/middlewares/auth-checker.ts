@@ -2,6 +2,11 @@ import { Action } from 'routing-controllers';
 import axios from 'axios';
 
 export async function authorizationChecker(action: Action, _roles: string[]) {
+  // Пропускаем авторизацию для health endpoint
+  if (action.request.url.startsWith('/api/health')) {
+    return true;
+  }
+
   const authHeader = action.request.headers['authorization'];
   if (!authHeader) return false;
   const token = authHeader.split(' ')[1];
