@@ -1,0 +1,20 @@
+name: Развертывание на сервере
+
+on:
+  workflow_dispatch: # Позволяет запускать воркфлоу вручную из интерфейса GitHub
+
+jobs:
+  deploy:
+    name: Развертывание
+    # Важно: эта задача должна выполняться на вашем собственном сервере-раннере
+    runs-on: self-hosted
+
+    steps:
+      - name: Получение кода
+        uses: actions/checkout@v4
+
+      - name: Сборка Docker-образов
+        run: docker-compose build
+
+      - name: Запуск сервисов
+        run: docker-compose up -d 

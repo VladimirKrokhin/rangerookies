@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/common" },
+    { "path": "packages/dto" },
+    { "path": "auth-service" },
+    { "path": "notes-service" },
+    { "path": "reference-service" },
+    { "path": "training-service" }
+  ]
+} 

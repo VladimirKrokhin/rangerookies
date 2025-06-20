@@ -1,0 +1,62 @@
+# Файл сгенерирован автоматически, не изменять
+# https://www.toptal.com/developers/gitignore/api/node,typescript
+
+### Node ###
+# Журналы (логи)
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Каталог для диагностики
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Временные файлы
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Библиотеки / Зависимости
+node_modules/
+
+# Файлы окружения (должны быть локальными)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Кэш
+.npm
+.yarn-integrity
+.pnp.js
+.pnp.cjs
+
+### TypeScript ###
+# Скомпилированные файлы
+*.js
+*.js.map
+*.d.ts
+
+# Исключение для конфигурационных файлов .js (если они нужны в репозитории)
+!*.config.js
+!*.conf.js
+!jest.config.js
+!babel.config.js
+
+# Каталог с результатами сборки (самое важное!)
+/dist
+/build
+/out
+/node_modules
+
+# Тестовые артефакты
+/coverage
+
+# Конфигурация IDE
+.vscode/
+.idea/
