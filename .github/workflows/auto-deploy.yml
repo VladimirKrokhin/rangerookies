@@ -1,117 +1,86 @@
-name: Автоматическое развертывание
+name: Автодеплой
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   deploy:
-    name: Развертывание
+    name: Деплой
     runs-on: self-hosted
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
+    
     steps:
-      - name: Получение кода
+      - name: Копирование кода
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Получаем полную историю коммитов
+          fetch-depth: 0
 
-      - name: Проверка текущего коммита
-        run: |
-          echo "Ветка: main"
-          echo "Коммит: $(git rev-parse HEAD)"
-          echo "Сообщение: $(git log -1 --pretty=format:'%s')"
-          echo "Автор: $(git log -1 --pretty=format:'%an')"
-          echo "Дата: $(git log -1 --pretty=format:'%cd')"
-
-      - name: Подготовка директории и синхронизация файлов
+      - name: Подготовка директории
         run: |
           sudo mkdir -p /var/www/apps/rangerookies
           sudo chown -R $USER:$USER /var/www/apps/rangerookies
           rsync -av --delete ./ /var/www/apps/rangerookies/
 
-      - name: Проверка синхронизации кода
+      - name: Создание переменных окружения
         run: |
           cd /var/www/apps/rangerookies
-          echo "Проверка синхронизации кода..."
-          echo "Файлы в директории:"
-          ls -la
-          echo "Docker файлы:"
-          ls -la */Dockerfile
-          echo "Последние изменения:"
-          find . -name "*.ts" -o -name "*.js" -o -name "*.json" | head -5 | xargs ls -la
-
-      - name: Создание .env файлов из секретов
-        run: |
-          cd /var/www/apps/rangerookies
-          
-          # Создаем .env файлы из GitHub Secrets
           echo "${{ secrets.AUTH_ENV }}" > auth-service/.env
           echo "${{ secrets.TRAINING_ENV }}" > training-service/.env
           echo "${{ secrets.REFERENCE_ENV }}" > reference-service/.env
           echo "${{ secrets.NOTES_ENV }}" > notes-service/.env
 
-      - name: Очистка Docker
+      - name: Остановка старых контейнеров
         run: |
           cd /var/www/apps/rangerookies
-          docker-compose down -v --remove-orphans || true
-          docker system prune -a -f --volumes || true
+          docker-compose down --remove-orphans
 
-      - name: Принудительная пересборка Docker-образов
+      - name: Сборка и запуск
         run: |
           cd /var/www/apps/rangerookies
-          echo "Принудительная пересборка образов..."
-          docker-compose build --no-cache --pull
-        working-directory: /var/www/apps/rangerookies
-
-      - name: Запуск сервисов
-        run: |
-          cd /var/www/apps/rangerookies
-          # Запускаем сервисы без health checks для CI/CD
-          echo "Запуск сервисов без health checks..."
-          docker-compose up -d --no-healthcheck
-        working-directory: /var/www/apps/rangerookies
-
-      - name: Ожидание готовности сервисов
-        run: |
-          cd /var/www/apps/rangerookies
+          echo "Сборка образов..."
+          docker-compose build
+          
+          echo "Запуск контейнеров..."
+          docker-compose up -d
+          
           echo "Ожидание готовности сервисов..."
+          timeout 300 bash -c '
+            while true; do
+              if docker-compose ps | grep -q "unhealthy"; then
+                echo "Некоторые сервисы не готовы, ждем..."
+                sleep 10
+              elif docker-compose ps | grep -q "starting"; then
+                echo "Сервисы запускаются, ждем..."
+                sleep 10
+              else
+                echo "Все сервисы готовы!"
+                docker-compose ps
+                break
+              fi
+            done
+          '
           
-          # Ждем дольше для запуска сервисов
-          echo "Ожидание 180 секунд для запуска сервисов..."
-          sleep 180
-          
-          # Проверяем статус всех сервисов
-          echo "Проверка статуса сервисов:"
-          docker-compose ps
-          
-          # Ждем еще немного если есть проблемы
-          exit_code=$(docker-compose ps --format "table {{.Name}}\t{{.Status}}" | grep -c "Exit" || true)
-          if [ "$exit_code" -gt 0 ]; then
-            echo "Обнаружено $exit_code остановленных сервисов, ждем еще 60 секунд..."
-            sleep 60
+          if [ $? -ne 0 ]; then
+            echo "Таймаут ожидания готовности сервисов"
             docker-compose ps
+            docker-compose logs --tail=50
+            exit 1
+          fi
+
+      - name: Проверка деплоя
+        run: |
+          cd /var/www/apps/rangerookies
+          echo "Проверка деплоя..."
+          
+          sleep 30
+          
+          unhealthy_count=$(docker-compose ps | grep -c "unhealthy" || true)
+          if [ "$unhealthy_count" -gt 0 ]; then
+            echo "Найдено $unhealthy_count неготовых сервисов"
+            docker-compose ps
+            docker-compose logs --tail=50
+            exit 1
           fi
           
-          # Проверяем сервисы через API Gateway
-          echo "Проверка сервисов через API Gateway..."
-          echo "API Gateway health:"
-          curl -f http://localhost:8080/api/health || echo "API Gateway health check failed"
-          
-          echo "Auth service через gateway:"
-          curl -f http://localhost:8080/api/health || echo "Auth service через gateway failed"
-          
-          echo "Training service через gateway:"
-          curl -f http://localhost:8080/api/training/health || echo "Training service через gateway failed"
-          
-          echo "Reference service через gateway:"
-          curl -f http://localhost:8080/api/reference/health || echo "Reference service через gateway failed"
-          
-          echo "Notes service через gateway:"
-          curl -f http://localhost:8080/api/notes/health || echo "Notes service через gateway failed"
-          
-          echo "Проверка пользователя через gateway:"
-          curl -f http://localhost:8080/api/user/1 || echo "User endpoint через gateway failed"
-        working-directory: /var/www/apps/rangerookies 
+          echo "Все сервисы готовы и работают!"
+          docker-compose ps 
