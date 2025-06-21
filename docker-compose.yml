@@ -57,11 +57,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/api/health"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8001/api/health || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
 
   # Training БД
   training-db:
@@ -102,11 +102,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/api/health"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8002/api/health || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
 
   # Reference БД
   reference-db:
@@ -147,11 +147,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/api/health"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8003/api/health || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
 
   # Notes БД
   notes-db:
@@ -192,11 +192,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8004/api/health"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8004/api/health || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
 
   # API Gateway
   api-gateway:
@@ -218,11 +218,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/api/health"]
+      test: ["CMD-SHELL", "curl -f http://localhost/api/health || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 60s
 
   # Prometheus
   prometheus:
