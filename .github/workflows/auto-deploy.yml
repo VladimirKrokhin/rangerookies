@@ -26,38 +26,22 @@ jobs:
           echo "Автор: $(git log -1 --pretty=format:'%an')"
           echo "Дата: $(git log -1 --pretty=format:'%cd')"
 
-      - name: Подготовка директории и синхронизация через git
+      - name: Подготовка директории и синхронизация файлов
         run: |
           sudo mkdir -p /var/www/apps/rangerookies
           sudo chown -R $USER:$USER /var/www/apps/rangerookies
-          
-          # Переходим в директорию приложения
-          cd /var/www/apps/rangerookies
-          
-          # Если git репозиторий уже существует, обновляем его
-          if [ -d ".git" ]; then
-            echo "Обновление существующего git репозитория..."
-            git fetch origin
-            git reset --hard origin/main
-            git clean -fd
-          else
-            echo "Клонирование git репозитория..."
-            git clone https://github.com/${{ github.repository }}.git .
-            git checkout main
-          fi
-          
-          echo "Синхронизация завершена"
+          rsync -av --delete ./ /var/www/apps/rangerookies/
 
       - name: Проверка синхронизации кода
         run: |
           cd /var/www/apps/rangerookies
           echo "Проверка синхронизации кода..."
-          echo "Текущий коммит на сервере: $(git rev-parse HEAD)"
-          echo "Ветка: $(git branch --show-current)"
           echo "Файлы в директории:"
           ls -la
           echo "Docker файлы:"
           ls -la */Dockerfile
+          echo "Последние изменения:"
+          find . -name "*.ts" -o -name "*.js" -o -name "*.json" | head -5 | xargs ls -la
 
       - name: Создание .env файлов из секретов
         run: |
