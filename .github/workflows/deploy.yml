@@ -55,47 +55,30 @@ jobs:
             docker-compose build
           fi
           
-          echo "Запуск контейнеров..."
+          echo "Запуск всех сервисов..."
           docker-compose up -d
           
-          echo "Ожидание готовности сервисов..."
-          timeout 300 bash -c '
-            while true; do
-              if docker-compose ps | grep -q "unhealthy"; then
-                echo "Некоторые сервисы не готовы, ждем..."
-                sleep 10
-              elif docker-compose ps | grep -q "starting"; then
-                echo "Сервисы запускаются, ждем..."
-                sleep 10
-              else
-                echo "Все сервисы готовы!"
-                docker-compose ps
-                break
-              fi
+          echo "Ожидание готовности всех сервисов..."
+          timeout 600 bash -c '
+            while docker-compose ps | grep -q "unhealthy\|starting"; do
+              echo "Некоторые сервисы еще не готовы, ждем..."
+              sleep 30
             done
-          '
-          
-          if [ $? -ne 0 ]; then
-            echo "Таймаут ожидания готовности сервисов"
+            echo "Все сервисы готовы!"
             docker-compose ps
-            docker-compose logs --tail=50
-            exit 1
-          fi
+          '
 
       - name: Проверка деплоя
         run: |
           cd /var/www/apps/rangerookies
           echo "Проверка деплоя..."
-          
-          sleep 30
+          docker-compose ps
           
           unhealthy_count=$(docker-compose ps | grep -c "unhealthy" || true)
           if [ "$unhealthy_count" -gt 0 ]; then
             echo "Найдено $unhealthy_count неготовых сервисов"
-            docker-compose ps
             docker-compose logs --tail=50
             exit 1
           fi
           
-          echo "Все сервисы готовы и работают!"
-          docker-compose ps 
+          echo "Все сервисы готовы и работают!" 

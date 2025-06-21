@@ -14,11 +14,11 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD-SHELL", "rabbitmq-diagnostics ping && rabbitmq-diagnostics check_port_connectivity"]
+      interval: 30s
+      timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 60s
 
   # Auth БД
   auth-db:
@@ -115,7 +115,7 @@ services:
       interval: 30s
       timeout: 15s
       retries: 3
-      start_period: 120s
+      start_period: 180s
 
   # Training Сервис
   training-service:
@@ -142,7 +142,7 @@ services:
       interval: 30s
       timeout: 15s
       retries: 3
-      start_period: 120s
+      start_period: 180s
 
   # Reference Сервис
   reference-service:
@@ -169,7 +169,7 @@ services:
       interval: 30s
       timeout: 15s
       retries: 3
-      start_period: 120s
+      start_period: 180s
 
   # Notes Сервис
   notes-service:
@@ -196,7 +196,7 @@ services:
       interval: 30s
       timeout: 15s
       retries: 3
-      start_period: 120s
+      start_period: 180s
 
   # API Gateway
   api-gateway:
