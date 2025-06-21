@@ -1,34 +1,26 @@
-name: Развертывание на сервере
+name: Автоматическое развертывание
 
 on:
-  workflow_dispatch: # Позволяет запускать воркфлоу вручную из интерфейса GitHub
-    inputs:
-      branch:
-        description: 'Ветка для деплоя'
-        required: false
-        default: 'main'
-        type: string
-      force_rebuild:
-        description: 'Принудительная пересборка образов'
-        required: false
-        default: 'true'
-        type: boolean
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   deploy:
     name: Развертывание
     runs-on: self-hosted
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - name: Получение кода
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch }}
           fetch-depth: 0  # Получаем полную историю коммитов
 
       - name: Проверка текущего коммита
         run: |
-          echo "Ветка: ${{ github.event.inputs.branch }}"
+          echo "Ветка: main"
           echo "Коммит: $(git rev-parse HEAD)"
           echo "Сообщение: $(git log -1 --pretty=format:'%s')"
           echo "Автор: $(git log -1 --pretty=format:'%an')"
@@ -46,12 +38,12 @@ jobs:
           if [ -d ".git" ]; then
             echo "Обновление существующего git репозитория..."
             git fetch origin
-            git reset --hard origin/${{ github.event.inputs.branch }}
+            git reset --hard origin/main
             git clean -fd
           else
             echo "Клонирование git репозитория..."
             git clone https://github.com/${{ github.repository }}.git .
-            git checkout ${{ github.event.inputs.branch }}
+            git checkout main
           fi
           
           echo "Синхронизация завершена"
@@ -86,13 +78,8 @@ jobs:
       - name: Принудительная пересборка Docker-образов
         run: |
           cd /var/www/apps/rangerookies
-          if [ "${{ github.event.inputs.force_rebuild }}" = "true" ]; then
-            echo "Принудительная пересборка образов..."
-            docker-compose build --no-cache --pull
-          else
-            echo "Обычная сборка образов..."
-            docker-compose build
-          fi
+          echo "Принудительная пересборка образов..."
+          docker-compose build --no-cache --pull
         working-directory: /var/www/apps/rangerookies
 
       - name: Запуск сервисов
