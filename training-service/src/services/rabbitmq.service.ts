@@ -1,11 +1,13 @@
 import { RabbitMQClient, RabbitMQMessage, RoutingKey } from '@app/common';
 import { rabbitMQConfig } from '../config/rabbitmq';
 import { RabbitMQMessageDto } from '@app/dto';
+import { Service } from 'typedi';
 
 /**
  * Сервис для работы с RabbitMQ в training-service
  * Отправляет события о создании, обновлении, удалении тренировок и прогрессе
  */
+@Service()
 export class RabbitMQService {
   private client: RabbitMQClient;
 
@@ -110,5 +112,14 @@ export class RabbitMQService {
    */
   async close(): Promise<void> {
     await this.client.close();
+  }
+
+  /**
+   * Проверяет, установлено ли соединение с RabbitMQ
+   */
+  isConnected(): boolean {
+    // Внутри RabbitMQClient есть connection, если оно не null, значит соединение есть
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return !!(this.client as any).connection && (this.client as any).connection.connection !== null;
   }
 }

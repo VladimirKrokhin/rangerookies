@@ -18,7 +18,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 20s
+      start_period: 30s
 
   # Auth БД
   auth-db:
@@ -32,7 +32,61 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d authdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Training БД
+  training-db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=trainingdb
+    volumes:
+      - training-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d trainingdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Reference БД
+  reference-db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=referencedb
+    volumes:
+      - reference-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d referencedb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Notes БД
+  notes-db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=notesdb
+    volumes:
+      - notes-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d notesdb"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -60,26 +114,8 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:8001/api/health || exit 1"]
       interval: 30s
       timeout: 15s
-      retries: 5
-      start_period: 90s
-
-  # Training БД
-  training-db:
-    image: postgres:14
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=trainingdb
-    volumes:
-      - training-db-data:/var/lib/postgresql/data
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 3
+      start_period: 120s
 
   # Training Сервис
   training-service:
@@ -105,26 +141,8 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:8002/api/health || exit 1"]
       interval: 30s
       timeout: 15s
-      retries: 5
-      start_period: 90s
-
-  # Reference БД
-  reference-db:
-    image: postgres:14
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=referencedb
-    volumes:
-      - reference-db-data:/var/lib/postgresql/data
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 3
+      start_period: 120s
 
   # Reference Сервис
   reference-service:
@@ -150,26 +168,8 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:8003/api/health || exit 1"]
       interval: 30s
       timeout: 15s
-      retries: 5
-      start_period: 90s
-
-  # Notes БД
-  notes-db:
-    image: postgres:14
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=notesdb
-    volumes:
-      - notes-db-data:/var/lib/postgresql/data
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 3
+      start_period: 120s
 
   # Notes Сервис
   notes-service:
@@ -195,8 +195,8 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:8004/health || exit 1"]
       interval: 30s
       timeout: 15s
-      retries: 5
-      start_period: 90s
+      retries: 3
+      start_period: 120s
 
   # API Gateway
   api-gateway:
@@ -221,7 +221,7 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost/api/health || exit 1"]
       interval: 30s
       timeout: 15s
-      retries: 5
+      retries: 3
       start_period: 60s
 
   # Prometheus

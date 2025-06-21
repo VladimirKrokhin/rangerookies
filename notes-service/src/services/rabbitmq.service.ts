@@ -5,7 +5,9 @@ import {
   ExchangeType,
   QueueName,
 } from '@app/common';
+import { Service } from 'typedi';
 
+@Service()
 export class RabbitMQService {
   private client: RabbitMQClient;
 
@@ -67,5 +69,14 @@ export class RabbitMQService {
 
   async consumeTrainingDeleted(callback: (data: any) => Promise<void>) {
     await this.client.consume(RoutingKey.TRAINING_DELETED, callback);
+  }
+
+  /**
+   * Проверяет, установлено ли соединение с RabbitMQ
+   */
+  isConnected(): boolean {
+    // Внутри RabbitMQClient есть connection, если оно не null, значит соединение есть
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return !!(this.client as any).connection && (this.client as any).connection.connection !== null;
   }
 }
