@@ -7,8 +7,10 @@ import { AppDataSource } from '../config/database';
 export class HealthController {
   @Get()
   async check() {
+    console.log('HEALTH контроллер вызван');
     try {
       const isConnected = AppDataSource.isInitialized;
+      console.log('Состояние базы данных:', isConnected);
       return {
         status: 'ok',
         timestamp: new Date().toISOString(),
@@ -17,13 +19,14 @@ export class HealthController {
         },
       };
     } catch (error) {
+      console.error('Ошибка проверки здоровья:', error);
       return {
         status: 'error',
         timestamp: new Date().toISOString(),
         services: {
           database: 'disconnected',
         },
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Неизвестная ошибка',
       };
     }
   }

@@ -54,21 +54,30 @@ export class App {
     this.app.use(metricsMiddleware);
 
     // Middleware
-    this.app.use(cors());
-    this.app.use(helmet());
-    this.app.use(json());
+    this.app.use((req, res, next) => {
+      console.log(`[LOG] ${req.method} ${req.url}`);
+      next();
+    });
+    
+    // Временно отключаем все middleware для диагностики
+    // this.app.use(cors());
+    // this.app.use(helmet());
+    // this.app.use(json());
 
     // Эндпоинт для метрик Prometheus
     this.app.get('/metrics', metricsEndpoint);
 
     // Настройка контроллеров
     const options: RoutingControllersOptions = {
-      controllers: [UserController, HealthController, AuthController],
+      controllers: [HealthController, UserController, AuthController],
       routePrefix: '/api',
       classTransformer: true,
       validation: true,
       authorizationChecker,
     };
+    
+    console.log('Регистрируем контроллеры:', options.controllers.map(c => c.name));
+    
     useSwagger(this.app, {
       ...options,
       swagger: { path: '/api/auth/api-docs' },

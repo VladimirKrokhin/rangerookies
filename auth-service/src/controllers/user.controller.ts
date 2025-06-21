@@ -9,9 +9,11 @@ import {
   HttpCode,
   NotFoundError,
   BadRequestError,
+  Authorized,
 } from 'routing-controllers';
 import { OpenAPI, ResponseSchema } from 'routing-controllers-openapi';
 import { Response, Request } from 'express';
+import { Service } from 'typedi';
 
 import { UserService } from '../services/user.service';
 import { authMiddleware } from '../middlewares/auth.middleware';
@@ -28,7 +30,8 @@ interface RequestWithUser extends Request {
   user?: UserDto;
 }
 
-@JsonController()
+@Service()
+@JsonController('/user')
 export class UserController {
   private userService: UserService;
   private authService: AuthService;
@@ -45,7 +48,7 @@ export class UserController {
    * @returns Список пользователей
    */
   @Get('/')
-  @UseBefore(authMiddleware)
+  @Authorized()
   @OpenAPI({ summary: 'Получить всех пользователей' })
   @ResponseSchema(UserDto, { isArray: true })
   async getAll() {
@@ -90,7 +93,7 @@ export class UserController {
    * @returns Данные пользователя
    */
   @Get('/:id')
-  @UseBefore(authMiddleware)
+  @Authorized()
   @OpenAPI({ summary: 'Получить пользователя по id' })
   @ResponseSchema(UserDto)
   async getById(@Param('id') id: number) {
@@ -116,7 +119,7 @@ export class UserController {
    * @returns Обновленный пользователь
    */
   @Patch('/:id')
-  @UseBefore(authMiddleware)
+  @Authorized()
   @OpenAPI({ summary: 'Обновить пользователя' })
   @ResponseSchema(UserDto)
   async update(
@@ -146,7 +149,7 @@ export class UserController {
    * @returns Результат операции
    */
   @Post('/:id/delete')
-  @UseBefore(authMiddleware)
+  @Authorized()
   @OpenAPI({ summary: 'Удалить пользователя' })
   async delete(@Param('id') id: number) {
     try {

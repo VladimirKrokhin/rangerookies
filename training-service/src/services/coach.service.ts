@@ -58,20 +58,20 @@ export class CoachService {
   async createCoach(dto: CreateCoachDto): Promise<CoachDto> {
     try {
       console.log('--- [createCoach] DTO:', dto);
-      console.log('--- [createCoach] dataSource.entities:', dataSource.options.entities);
+      console.log('--- [createCoach] dataSource.сущности:', dataSource.options.entities);
       const coach = this.coachRepository.create({ userId: dto.userId });
       const savedCoach = await this.coachRepository.save(coach);
-      console.log('--- [createCoach] savedCoach:', savedCoach);
+      console.log('--- [createCoach] сохраненный тренер:', savedCoach);
       if (dto.athleteIds && dto.athleteIds.length > 0) {
         const athleteRepo = dataSource.getRepository(AthleteEntity);
         const athletes = await athleteRepo.findByIds(dto.athleteIds);
-        console.log('--- [createCoach] athletes:', athletes);
+        console.log('--- [createCoach] спортсмены:', athletes);
         savedCoach.athletes = athletes;
         await this.coachRepository.save(savedCoach);
       }
       return this.mapToDto(savedCoach);
     } catch (error) {
-      console.error('--- [createCoach] ERROR:', error);
+      console.error('--- [createCoach] ОШИБКА:', error);
       throw new BadRequestError('Не удалось создать тренера');
     }
   }
