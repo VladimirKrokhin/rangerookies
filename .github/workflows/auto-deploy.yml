@@ -76,10 +76,21 @@ jobs:
         run: |
           cd /var/www/apps/rangerookies
           echo "Ожидание готовности сервисов..."
-          sleep 60
+          
+          echo "Ожидание 120 секунд для health checks..."
+          sleep 120
           
           # Проверяем статус всех сервисов
+          echo "Проверка статуса сервисов:"
           docker-compose ps
+          
+          # Ждем еще немного если есть unhealthy сервисы
+          unhealthy_count=$(docker-compose ps --format "table {{.Name}}\t{{.Status}}" | grep -c "unhealthy" || true)
+          if [ "$unhealthy_count" -gt 0 ]; then
+            echo "Обнаружено $unhealthy_count unhealthy сервисов, ждем еще 60 секунд..."
+            sleep 60
+            docker-compose ps
+          fi
           
           # Проверяем health endpoints
           echo "Проверка health endpoints..."
