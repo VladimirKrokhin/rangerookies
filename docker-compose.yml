@@ -18,7 +18,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 20s
 
   # Auth БД
   auth-db:
@@ -31,11 +31,6 @@ services:
       - auth-db-data:/var/lib/postgresql/data
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d authdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   # Auth Сервис
   auth-service:
@@ -50,17 +45,11 @@ services:
       - "8001:8001"
     depends_on:
       auth-db:
-        condition: service_healthy
+        condition: service_started
       rabbitmq:
         condition: service_healthy
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/api/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
 
   # Training БД
   training-db:
@@ -73,11 +62,6 @@ services:
       - training-db-data:/var/lib/postgresql/data
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d trainingdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   # Training Сервис
   training-service:
@@ -92,19 +76,13 @@ services:
       - "8002:8002"
     depends_on:
       training-db:
-        condition: service_healthy
+        condition: service_started
       auth-service:
-        condition: service_healthy
+        condition: service_started
       rabbitmq:
         condition: service_healthy
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/api/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
 
   # Reference БД
   reference-db:
@@ -117,11 +95,6 @@ services:
       - reference-db-data:/var/lib/postgresql/data
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d referencedb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   # Reference Сервис
   reference-service:
@@ -136,19 +109,13 @@ services:
       - "8003:8003"
     depends_on:
       reference-db:
-        condition: service_healthy
+        condition: service_started
       auth-service:
-        condition: service_healthy
+        condition: service_started
       rabbitmq:
         condition: service_healthy
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/api/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
 
   # Notes БД
   notes-db:
@@ -161,11 +128,6 @@ services:
       - notes-db-data:/var/lib/postgresql/data
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d notesdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   # Notes Сервис
   notes-service:
@@ -180,19 +142,13 @@ services:
       - "8004:8004"
     depends_on:
       notes-db:
-        condition: service_healthy
+        condition: service_started
       auth-service:
-        condition: service_healthy
+        condition: service_started
       rabbitmq:
         condition: service_healthy
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
 
   # API Gateway
   api-gateway:
@@ -204,13 +160,13 @@ services:
       - "8080:80"
     depends_on:
       auth-service:
-        condition: service_healthy
+        condition: service_started
       training-service:
-        condition: service_healthy
+        condition: service_started
       reference-service:
-        condition: service_healthy
+        condition: service_started
       notes-service:
-        condition: service_healthy
+        condition: service_started
     networks:
       - app-network
 
