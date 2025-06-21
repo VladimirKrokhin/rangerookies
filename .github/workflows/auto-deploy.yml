@@ -95,11 +95,23 @@ jobs:
             docker-compose ps
           fi
           
-          # Проверяем health endpoints
-          echo "Проверка health endpoints..."
+          # Проверяем сервисы через API Gateway
+          echo "Проверка сервисов через API Gateway..."
+          echo "API Gateway health:"
           curl -f http://localhost:8080/api/health || echo "API Gateway health check failed"
-          curl -f http://localhost:8001/api/health || echo "Auth service health check failed"
-          curl -f http://localhost:8002/api/health || echo "Training service health check failed"
-          curl -f http://localhost:8003/api/health || echo "Reference service health check failed"
-          curl -f http://localhost:8004/api/health || echo "Notes service health check failed"
+          
+          echo "Auth service через gateway:"
+          curl -f http://localhost:8080/api/health || echo "Auth service через gateway failed"
+          
+          echo "Training service через gateway:"
+          curl -f http://localhost:8080/api/training/health || echo "Training service через gateway failed"
+          
+          echo "Reference service через gateway:"
+          curl -f http://localhost:8080/api/reference/health || echo "Reference service через gateway failed"
+          
+          echo "Notes service через gateway:"
+          curl -f http://localhost:8080/api/notes/health || echo "Notes service через gateway failed"
+          
+          echo "Проверка пользователя через gateway:"
+          curl -f http://localhost:8080/api/user/1 || echo "User endpoint через gateway failed"
         working-directory: /var/www/apps/rangerookies 
